@@ -587,6 +587,11 @@
                         name="form_subject"
                         value="Dogu Bati Proje'ye gelen mesaj"
                       />
+                      <input
+                        type="hidden"
+                        name="return_path"
+                        value="iletisim.html"
+                      />
 
                       <div class="row">
                         <div class="col-lg-4">
@@ -595,6 +600,7 @@
                               type="text"
                               class="form-control"
                               id="name"
+                              name="name"
                               placeholder="İsminiz"
                               required
                             />
@@ -606,6 +612,7 @@
                               type="email"
                               class="form-control"
                               id="email"
+                              name="email"
                               placeholder="Emailiniz"
                               required
                             />
@@ -617,6 +624,7 @@
                               type="text"
                               class="form-control"
                               id="subject"
+                              name="subject"
                               placeholder="Konu"
                               required
                             />
@@ -630,6 +638,7 @@
                             <textarea
                               class="form-control"
                               id="message"
+                              name="message"
                               rows="8"
                               placeholder="Önerilerinizi, Şikayetlerinizi ve Tebriklerinizi Bize İleteblirsiniz (Sadece Yazı)"
                               required=""
@@ -642,11 +651,19 @@
                         <div class="col-lg-12">
                           <button
                             type="submit"
-                            onclick="sendMail()"
                             class="btn btn-primary btn-rounded-5x btn-block btnmy"
                           >
                             MESAJI GÖNDER
                           </button>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <div
+                            id="form-status"
+                            class="form-status-message"
+                            aria-live="polite"
+                          ></div>
                         </div>
                       </div>
                     </form>
@@ -774,7 +791,6 @@
     <script src="assets/js/theme.js"></script>
     <script src="assets/js/onlyans.js"></script>
     <script src="assets/js/script.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
 
     <!-- ====================
 		///// Scripts below /////

@@ -556,9 +556,9 @@
                 </div>
 
                 <!-- BİZE MESAJ ATIN BAŞLANGIÇ -->
-                <!-- <div class="row">
+                <div class="row">
                   <div class="col-md-12">
-                    <form action="mail.php" id="contact-form" method="post">
+                    <form action="../iletisim-post.php" id="contact-form" method="post">
                       
                       <input
                         type="hidden"
@@ -577,6 +577,11 @@
                         name="form_subject"
                         value="Dogu Bati Proje ye gelen mesaj"
                       />
+                      <input
+                        type="hidden"
+                        name="return_path"
+                        value="en/contact.html"
+                      />
                       
 
                       <div class="row">
@@ -585,7 +590,7 @@
                             <input
                               type="text"
                               class="form-control"
-                              name="Name:"
+                              name="name"
                               placeholder="Name"
                               required=""
                             />
@@ -596,7 +601,7 @@
                             <input
                               type="email"
                               class="form-control"
-                              name="Email:"
+                              name="email"
                               placeholder="Email"
                               required=""
                             />
@@ -607,7 +612,7 @@
                             <input
                               type="text"
                               class="form-control"
-                              name="Subject:"
+                              name="subject"
                               placeholder="Subject"
                               required=""
                             />
@@ -620,7 +625,7 @@
                           <div class="form-group">
                             <textarea
                               class="form-control"
-                              name="Message:"
+                              name="message"
                               rows="8"
                               placeholder="You Can Send Us Your Suggestions, Complaints and Congratulations (Text Only)"
                               required=""
@@ -639,9 +644,18 @@
                           </button>
                         </div>
                       </div>
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <div
+                            id="form-status"
+                            class="form-status-message"
+                            aria-live="polite"
+                          ></div>
+                        </div>
+                      </div>
                     </form>
                   </div>
-                </div> -->
+                </div>
               
               </div>
             </div>
@@ -764,6 +778,7 @@
     <!-- Theme master JS -->
     <script src="assets/js/theme.js"></script>
     <script src="assets/js/onlyans.js"></script>
+    <script src="assets/js/script.js"></script>
 
     <!-- ====================
 		///// Scripts below /////

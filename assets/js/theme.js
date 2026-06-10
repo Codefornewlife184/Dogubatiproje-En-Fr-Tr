@@ -42,7 +42,64 @@
 
 
    $(document).ready(function(){
-    $('[data-toggle="popover"]').popover();   
+    if ($.fn.popover) $('[data-toggle="popover"]').popover();   
+	var $nav = $('#header .navbar-nav');
+	if ($nav.length) {
+		var path = (window.location && window.location.pathname ? window.location.pathname : '').toLowerCase();
+		var normalizeNavFile = function (value, fallback) {
+			var normalized = (value || '').toLowerCase().split('#')[0].split('?')[0];
+			try { normalized = decodeURIComponent(normalized); } catch (e) {}
+			normalized = normalized.split('/').pop();
+			if (!normalized || normalized === 'index') return fallback;
+			if (normalized.indexOf('.') === -1) normalized += '.html';
+			return normalized;
+		};
+		var current = normalizeNavFile(path, path.indexOf('/en/') !== -1 ? 'enindex.html' : (path.indexOf('/fr/') !== -1 ? 'frindex.html' : 'index.html'));
+		$nav.find('li').removeClass('active');
+		var matchEl = null;
+		$nav.find('a[href]').each(function () {
+			if (this.querySelector && this.querySelector('img')) return;
+			var href = (this.getAttribute('href') || '').trim();
+			if (!href) return;
+			var hrefLower = href.toLowerCase();
+			if (hrefLower.indexOf('#') === 0) return;
+			if (hrefLower.indexOf('javascript:') === 0) return;
+			if (hrefLower.indexOf('mailto:') === 0) return;
+			if (hrefLower.indexOf('tel:') === 0) return;
+			if (hrefLower.indexOf('http://') === 0 || hrefLower.indexOf('https://') === 0) return;
+			var hrefFile = normalizeNavFile(hrefLower, current);
+			if (!hrefFile) return;
+			if (hrefFile === current) matchEl = this;
+		});
+		if (!matchEl) {
+			var keys = null;
+			if (current.indexOf('kamu') !== -1) keys = ['kamuprojeleri'];
+			else if (current.indexOf('ticaret') !== -1) keys = ['ticariprojeler'];
+			else if (current.indexOf('egitim') !== -1) keys = ['egitimyapilari'];
+			else if (current.indexOf('rezidans') !== -1 || current.indexOf('residence') !== -1 || current.indexOf('résidence') !== -1) keys = ['rezidanslar', 'residence', 'résidence'];
+			else if (current.indexOf('villa') !== -1) keys = ['villaprojeleri'];
+			else if (current.indexOf('endustri') !== -1) keys = ['endustriyapilari'];
+			if (keys) {
+				$nav.find('a[href]').each(function () {
+					if (matchEl) return;
+					if (this.querySelector && this.querySelector('img')) return;
+					var hrefLower = ((this.getAttribute('href') || '').trim()).toLowerCase();
+					if (!hrefLower) return;
+					for (var i = 0; i < keys.length; i++) {
+						if (hrefLower.indexOf(keys[i]) !== -1) {
+							matchEl = this;
+							return;
+						}
+					}
+				});
+			}
+		}
+		if (matchEl) {
+			var $li = $(matchEl).closest('li');
+			$li.addClass('active');
+			$li.parents('li.dropdown').addClass('active');
+		}
+	}
    });
 
 
@@ -792,6 +849,89 @@
 		$(".youtube-bg").mb_YTPlayer();
 	}
 
+	var $youtubeBg = $(".youtube-bg");
+	var youtubeBgStopped = false;
+	var setYoutubeBgMuted = function (muted) {
+		if (!$youtubeBg.length) return;
+		try { muted ? $youtubeBg.YTPMute() : $youtubeBg.YTPUnmute(); } catch (e) {}
+		$youtubeBg.data("ytpMuted", muted);
+	};
+	var enforceYoutubeBgMuted = function () {
+		setYoutubeBgMuted(true);
+	};
+	var detachYoutubeBgFrames = function () {
+		$(".mbYTP_wrapper iframe, .youtube-bg-wrap iframe, .youtube-bg iframe").each(function () {
+			if (this.src && this.src !== "about:blank") {
+				this.setAttribute("src", "about:blank");
+			}
+		});
+	};
+	var stopYoutubeBg = function () {
+		if (!$youtubeBg.length || youtubeBgStopped) return;
+		youtubeBgStopped = true;
+		enforceYoutubeBgMuted();
+		try { $youtubeBg.YTPPause(); } catch (e) {}
+		try { $youtubeBg.YTPStop(); } catch (e) {}
+		detachYoutubeBgFrames();
+		try { $youtubeBg.YTPPlayerDestroy(); } catch (e) {}
+	};
+	$youtubeBg.on("YTPReady", function () {
+		youtubeBgStopped = false;
+		enforceYoutubeBgMuted();
+	});
+	setTimeout(enforceYoutubeBgMuted, 0);
+	setTimeout(enforceYoutubeBgMuted, 500);
+	document.addEventListener("click", function (event) {
+		var target = event.target;
+		if (!target) return;
+		if (target.closest("a[href]")) return;
+		if (!target.closest("#intro-section")) return;
+		var wrapper = target.closest(".mbYTP_wrapper, .youtube-bg-wrap, .youtube-bg, .YTPOverlay");
+		if (!wrapper) return;
+		event.preventDefault();
+		event.stopPropagation();
+		var muted = $youtubeBg.data("ytpMuted");
+		if (muted === undefined) muted = true;
+		setYoutubeBgMuted(!muted);
+	}, true);
+	var shouldStopYoutubeBgForLink = function (link) {
+		if (!link || link.target === "_blank") return false;
+		var href = link.getAttribute("href");
+		if (!href) return false;
+		if (href.indexOf("#") === 0) return false;
+		if (href.indexOf("javascript:") === 0) return false;
+		if (href.indexOf("mailto:") === 0) return false;
+		if (href.indexOf("tel:") === 0) return false;
+		return true;
+	};
+	document.addEventListener("mousedown", function (event) {
+		var link = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+		if (!shouldStopYoutubeBgForLink(link)) return;
+		stopYoutubeBg();
+	}, true);
+	document.addEventListener("touchstart", function (event) {
+		var link = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+		if (!shouldStopYoutubeBgForLink(link)) return;
+		stopYoutubeBg();
+	}, true);
+	document.addEventListener("keydown", function (event) {
+		if (event.key !== "Enter") return;
+		var activeEl = document.activeElement;
+		if (!activeEl || !activeEl.closest) return;
+		var link = activeEl.closest("a[href]");
+		if (!shouldStopYoutubeBgForLink(link)) return;
+		stopYoutubeBg();
+	}, true);
+	$(document).on("click", "a[href]", function () {
+		if (!shouldStopYoutubeBgForLink(this)) return;
+		stopYoutubeBg();
+	});
+	window.addEventListener("pagehide", stopYoutubeBg);
+	window.addEventListener("beforeunload", stopYoutubeBg);
+	document.addEventListener("visibilitychange", function () {
+		if (document.hidden) stopYoutubeBg();
+	});
+
 
 
 	// =======================================
@@ -808,30 +948,6 @@
 		$('.bg-image-scroll-vertical').css('background-position', '50% ' + x + 'px');
 
 	}, 80); // Scrolling speed.
-
-
-
-	// ===============================================
-	// Universal PHP Mail Feedback Script
-	// Source: https://github.com/agragregra/uniMail
-	// ===============================================
-
-	//E-mail Ajax Send
-	$("#contact-form").submit(function() { //Change (your contact form ID)
-		var th = $(this);
-		$.ajax({
-			type: "POST",
-			url: "mail.php", //Change (mail.php path)
-			data: th.serialize()
-		}).done(function() {
-			alert("Teşekkürler..Mesajınız gönderildi..");
-			setTimeout(function() {
-			// Done Functions
-			th.trigger("reset");
-			}, 1000);
-		});
-		return false;
-	});
 
 
 
